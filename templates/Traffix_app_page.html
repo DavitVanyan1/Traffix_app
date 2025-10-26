@@ -1,0 +1,2223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Smart Traffic & Parking - Yerevan</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#34c759;
+    --blue:#007aff;
+    --blue-dark:#0056cc;
+    --purple:#8e44ad;
+    --orange:#ff6b35;
+    --muted:#f5f5f7;
+    --dark:#1d1d1f;
+    --accent:#0a2540;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: 'Inter', -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial, sans-serif;
+    background: linear-gradient(135deg, #34c759 0%, #007aff 100%);
+    color:var(--dark);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    overflow-x: hidden;
+  }
+
+  /* NEW WELCOME PAGE STYLES */
+  .new-welcome-screen {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #2ecc71 0%, #3498db 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .new-welcome-screen::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(46, 204, 113, 0.4) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(52, 152, 219, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(46, 204, 113, 0.3) 0%, transparent 50%);
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(1deg); }
+  }
+
+  .welcome-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 40px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .auth-buttons {
+    display: flex;
+    gap: 12px;
+  }
+
+  .small-auth-btn {
+    padding: 10px 24px;
+    border-radius: 25px;
+    border: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .small-login {
+    background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .small-login:hover {
+    background: linear-gradient(135deg, var(--blue-dark), #0047ab);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,122,255,0.3);
+  }
+
+  .small-signup {
+    background: white;
+    color: #2ecc71;
+    border: 2px solid white;
+  }
+
+  .small-signup:hover {
+    background: transparent;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+  }
+
+  .welcome-content {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 40px 60px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .welcome-card {
+    max-width: 1200px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 32px;
+    padding: 60px;
+    box-shadow: 
+      0 25px 50px rgba(0, 0, 0, 0.15),
+      0 0 0 1px rgba(255, 255, 255, 0.3);
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    animation: slideUp 1s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .logo-section {
+    margin-bottom: 40px;
+  }
+
+  .welcome-logo {
+    width: 150px;
+    height: 150px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.1));
+  }
+
+  .app-title {
+    font-size: 4rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #2ecc71, #3498db);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0 0 20px 0;
+    line-height: 1.1;
+  }
+
+  .description-section {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .description-text {
+    font-size: 1.3rem;
+    line-height: 1.8;
+    color: #4a5568;
+    margin-bottom: 40px;
+    text-align: left;
+  }
+
+  .highlight-section {
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.1), rgba(52, 152, 219, 0.1));
+    padding: 30px;
+    border-radius: 20px;
+    margin: 30px 0;
+    border-left: 4px solid #2ecc71;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 50px;
+  }
+
+  .feature-card {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(46, 204, 113, 0.1);
+  }
+
+  .feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  .feature-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+  }
+
+  .feature-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 15px;
+  }
+
+  .feature-description {
+    color: #718096;
+    line-height: 1.6;
+  }
+
+  .mission-statement {
+    font-style: italic;
+    font-size: 1.2rem;
+    color: #2ecc71;
+    font-weight: 500;
+    margin: 30px 0;
+    padding: 20px;
+    border-left: 3px solid #2ecc71;
+    background: rgba(46, 204, 113, 0.05);
+    border-radius: 10px;
+  }
+
+  .floating-elements {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+
+  .floating-element {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    animation: floatElement 15s infinite linear;
+  }
+
+  @keyframes floatElement {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(20px, 20px) rotate(90deg); }
+    50% { transform: translate(0, 40px) rotate(180deg); }
+    75% { transform: translate(-20px, 20px) rotate(270deg); }
+  }
+
+  /* Rest of the existing styles remain unchanged */
+  .welcome-screen, .auth-screen, .main-app { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:36px; display: none; }
+  .welcome-card-old, .auth-card {
+    width:100%;
+    max-width:940px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(245,250,255,0.98));
+    backdrop-filter: blur(20px);
+    border-radius:24px;
+    box-shadow: 0 25px 60px rgba(10,37,64,0.25), 0 0 0 1px rgba(255,255,255,0.2);
+    padding:40px;
+    display:flex;
+    gap:28px;
+    align-items:center;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .welcome-left{flex:1;padding:20px}
+  .welcome-right{width:360px}
+  h1{margin:0 0 16px 0;font-size:38px;color:var(--accent);background: linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
+  p.lead{margin:0 0 22px 0;color:#4b5563;font-size:18px;line-height:1.6}
+  .big-btn{display:block;width:100%;padding:16px 20px;border-radius:16px;border:none;font-weight:800;font-size:17px;cursor:pointer;box-shadow:0 12px 25px rgba(10,37,64,0.15);transition:all 0.3s ease;position:relative;overflow:hidden;}
+  .big-btn:before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);transition:0.5s;}
+  .big-btn:hover:before{left:100%}
+  .big-btn:hover{transform:translateY(-8px); box-shadow:0 20px 40px rgba(10,37,64,0.25)}
+  .btn-login{background:linear-gradient(135deg, var(--blue), var(--blue-dark));color:white;margin-bottom:16px}
+  .btn-signup{background:linear-gradient(135deg, var(--green), #2aa952);color:white}
+  /* Logo styles */
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-img { border-radius: 12px; }
+  .header-logo { width: 40px; height: 40px; }
+  .slogan { font-style: italic; color: #506b86; font-size: 20px; margin-top: 8px; text-align: center; }
+  /* Auth card styles (separate page) */
+  .auth-card{flex-direction:column;align-items:flex-start;padding:32px}
+  .form-row{width:100%;margin-bottom:16px}
+  .form-row label{display:block;font-weight:700;margin-bottom:8px;color:#0b1f34}
+  .form-row input{width:100%;padding:14px;border-radius:12px;border:2px solid #e6eefc;transition:all 0.3s ease;font-size:16px}
+  .form-row input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,122,255,0.1);transform:translateY(-2px)}
+  .small-btn{padding:12px 20px;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(135deg, var(--blue), var(--blue-dark));color:white;font-weight:700;font-size:16px;transition:all 0.3s ease;box-shadow:0 8px 20px rgba(0,122,255,0.2)}
+  .small-btn:hover{transform:translateY(-3px);box-shadow:0 12px 25px rgba(0,122,255,0.3)}
+  .back-link{background:#fff;border:2px solid #e6eefc;padding:10px 16px;border-radius:10px;cursor:pointer;transition:all 0.3s ease;font-weight:600}
+  .back-link:hover{background:#f8fbff;transform:translateY(-2px)}
+  /* Main app header */
+  .app-container{width:100%;max-width:1200px;margin:0 auto}
+  header.app-header{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-radius:20px;background:linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,251,255,0.98));box-shadow:0 15px 35px rgba(10,37,64,0.15);margin-bottom:24px;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3)}
+  header.app-header h1{font-size:24px;margin:0;background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;font-weight:800}
+  nav.nav-tabs{display:flex;gap:12px;align-items:center}
+  .tab-btn{background:transparent;border:none;padding:12px 20px;border-radius:12px;cursor:pointer;font-weight:700;transition:all 0.3s ease;color:#4b5563}
+  .tab-btn:hover{background:rgba(0,122,255,0.1);transform:translateY(-2px)}
+  .tab-btn.active{background:linear-gradient(135deg, var(--blue), var(--blue-dark));color:#fff;box-shadow:0 12px 25px rgba(3,82,255,0.2);transform:translateY(-3px)}
+  /* User circle button */
+  .user-circle-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0,122,255,0.2);
+    transition: all 0.3s ease;
+    margin-left: 12px;
+  }
+  .user-circle-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 25px rgba(0,122,255,0.3);
+  }
+  /* content */
+  .content-section{display:none}
+  .content-section.active{display:block;animation:fadeIn 0.5s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .home-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px}
+  .feature-card-old{background:linear-gradient(145deg, rgba(255,255,255,0.95), rgba(245,250,255,0.98));padding:28px;border-radius:20px;box-shadow:0 15px 35px rgba(10,37,64,0.1);cursor:pointer;transition:all 0.4s ease;border:1px solid rgba(255,255,255,0.3);backdrop-filter:blur(20px)}
+  .feature-card-old:hover{transform:translateY(-10px) scale(1.02); box-shadow:0 25px 50px rgba(10,37,64,0.2)}
+  .feature-icon-old{font-size:48px;margin-bottom:16px;filter:drop-shadow(0 8px 16px rgba(0,0,0,0.1))}
+  .feature-card-old h3{font-size:22px;margin-bottom:12px;color:#0a2540}
+  /* Parking picker + layout */
+  .time-picker-container{background:linear-gradient(145deg, rgba(255,255,255,0.95), rgba(245,250,255,0.98));padding:28px;border-radius:20px;max-width:720px;margin:0 auto;box-shadow:0 20px 40px rgba(10,37,64,0.15);position:relative;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3)}
+  .datetime-group{margin-bottom:16px}
+  label{font-weight:800;color:#0b1f34;font-size:15px}
+  input[type=date], input[type=time], select{width:100%;padding:14px;border-radius:12px;border:2px solid #eef6ff;transition:all 0.3s ease;font-size:16px;background:rgba(255,255,255,0.8)}
+  input[type=date]:focus, input[type=time]:focus, select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,122,255,0.1);transform:translateY(-2px)}
+  .proceed-btn{background:linear-gradient(135deg, var(--blue), var(--blue-dark));color:#fff;padding:16px;border-radius:14px;border:none;cursor:pointer;font-weight:800;margin-top:16px;transition:all 0.3s ease;box-shadow:0 12px 25px rgba(0,122,255,0.2);font-size:16px}
+  .proceed-btn:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,122,255,0.3)}
+  #parking-lot-view{display:none;margin-top:24px}
+  #parking-lot-view.active{display:block;animation:fadeIn 0.5s ease}
+  .go-back{background:rgba(255,255,255,0.9);border:2px solid #eef6ff;padding:12px 20px;border-radius:12px;cursor:pointer;margin-bottom:16px;transition:all 0.3s ease;font-weight:700;backdrop-filter:blur(10px)}
+  .go-back:hover{background:white;transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.1)}
+  /* Map styles */
+  #facility-map { height: 500px; border-radius: 20px; margin-top: 16px; box-shadow: 0 15px 35px rgba(10,37,64,0.15); border: 1px solid rgba(255,255,255,0.3); }
+  .facility-info { background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(245,250,255,0.98)); padding: 16px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.3); }
+  .select-facility-btn { background: linear-gradient(135deg, var(--blue), var(--blue-dark)); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; margin-top: 12px; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(0,122,255,0.2); }
+  .select-facility-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(0,122,255,0.3); }
+  /* SVG 3D-like styles */
+  svg#parking-lot-canvas{width:100%;height:640px;border-radius:20px;background:linear-gradient(145deg, #f7fbff, #ffffff);box-shadow: 0 20px 40px rgba(10,37,64,0.15); border: 1px solid rgba(255,255,255,0.3)}
+  .spot-rect{filter: drop-shadow(0 8px 20px rgba(10,37,64,0.15)); transition: all 0.3s ease}
+  .spot-rect.available:hover{transform:translateY(-8px) scale(1.05);cursor:pointer;opacity:0.9;filter: drop-shadow(0 15px 30px rgba(52,199,89,0.3))}
+  .spot-text{pointer-events:none;font-weight:800}
+  .road{fill:#d0d3d6; opacity:0.95}
+  /* modal */
+  .modal{display:none;position:fixed;inset:0;background:rgba(2,6,23,0.6);align-items:center;justify-content:center;z-index:3000;backdrop-filter:blur(10px)}
+  .modal.active{display:flex;animation:fadeIn 0.3s ease}
+  .modal-card{background:linear-gradient(145deg, rgba(255,255,255,0.98), rgba(245,250,255,0.95));border-radius:20px;padding:28px;max-width:480px;width:94%;box-shadow:0 30px 60px rgba(10,37,64,0.3);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3);animation:modalSlide 0.4s ease}
+  @keyframes modalSlide{from{opacity:0;transform:scale(0.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+  .reserve-row{display:flex;gap:12px;margin-top:16px}
+  .reserve-btn{flex:1;padding:16px;border-radius:12px;border:none;font-weight:800;cursor:pointer;transition:all 0.3s ease}
+  .reserve-btn.white{background:rgba(255,255,255,0.9);border:2px solid #eef6ff;color:#0a2540}
+  .reserve-btn.white:hover{background:white;transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.1)}
+  .reserve-btn.green{background:linear-gradient(135deg, var(--green), #2aa952);color:#fff;box-shadow:0 8px 20px rgba(52,199,89,0.3)}
+  .reserve-btn.green:hover{transform:translateY(-3px);box-shadow:0 12px 25px rgba(52,199,89,0.4)}
+  .qr-code img{width:200px;height:200px;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.2)}
+  /* Register Parking Lot Styles */
+  .register-container {
+    background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(245,250,255,0.98));
+    padding: 32px;
+    border-radius: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    box-shadow: 0 20px 40px rgba(10,37,64,0.15);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .download-link {
+    display: inline-block;
+    margin: 16px 0;
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: 700;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: rgba(0,122,255,0.1);
+    transition: all 0.3s ease;
+  }
+  .download-link:hover {
+    background: rgba(0,122,255,0.2);
+    transform: translateY(-2px);
+  }
+  .drop-zone {
+    border: 2px dashed #e6eefc;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    margin: 16px 0;
+    transition: all 0.3s ease;
+    background: rgba(255,255,255,0.5);
+  }
+  .drop-zone.active {
+    border-color: var(--blue);
+    background: rgba(0,122,255,0.05);
+  }
+  .drop-zone p {
+    margin: 0;
+    color: #546b81;
+  }
+  .file-list {
+    margin-top: 16px;
+  }
+  .file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .success-message {
+    text-align: center;
+    padding: 40px;
+  }
+  .success-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+  }
+  /* Show Path Button */
+  .show-path-btn {
+    background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    margin-top: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0,122,255,0.2);
+    display: inline-block;
+  }
+  .show-path-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(0,122,255,0.3);
+  }
+  /* User Section Styles */
+  .user-section-container {
+    background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(245,250,255,0.98));
+    padding: 32px;
+    border-radius: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    box-shadow: 0 20px 40px rgba(10,37,64,0.15);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .user-email-display {
+    text-align: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #eef6ff;
+  }
+  .user-subsection {
+    display: none;
+  }
+  .user-subsection.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+  }
+  .user-subnav {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #eef6ff;
+    padding-bottom: 16px;
+  }
+  .user-subnav-btn {
+    background: transparent;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    color: #4b5563;
+  }
+  .user-subnav-btn:hover {
+    background: rgba(0,122,255,0.1);
+    transform: translateY(-2px);
+  }
+  .user-subnav-btn.active {
+    background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    color: #fff;
+    box-shadow: 0 12px 25px rgba(3,82,255,0.2);
+    transform: translateY(-3px);
+  }
+  .settings-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+  }
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+  }
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+  }
+  input:checked + .toggle-slider {
+    background-color: var(--blue);
+  }
+  input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+  }
+  /* Success Message */
+  .success-alert {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--green), #2aa952);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(52,199,89,0.3);
+    z-index: 4000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    animation: slideDown 0.5s ease;
+  }
+  @keyframes slideDown {
+    from { top: -100px; opacity: 0; }
+    to { top: 20px; opacity: 1; }
+  }
+  /* Credit Card Authentication */
+  .cc-auth-form {
+    background: rgba(255,255,255,0.9);
+    padding: 24px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  }
+  /* Personal Statistics Styles */
+  .stats-selector {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    background: rgba(255,255,255,0.8);
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .stats-selector-btn {
+    flex: 1;
+    padding: 16px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    background: transparent;
+    color: #4b5563;
+    text-align: center;
+  }
+
+  .stats-selector-btn:hover {
+    background: rgba(0,122,255,0.1);
+  }
+
+  .stats-selector-btn.active {
+    background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    color: white;
+    box-shadow: 0 8px 20px rgba(0,122,255,0.2);
+  }
+
+  .stats-card {
+    background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(245,250,255,0.98));
+    padding: 32px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(10,37,64,0.12);
+    margin-bottom: 24px;
+    border: 1px solid rgba(255,255,255,0.3);
+    backdrop-filter: blur(20px);
+    animation: fadeIn 0.5s ease;
+  }
+
+  .stats-icon {
+    font-size: 48px;
+    text-align: center;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.1));
+  }
+
+  .stats-number {
+    font-size: 48px;
+    font-weight: 800;
+    text-align: center;
+    background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 16px 0;
+  }
+
+  .stats-label {
+    text-align: center;
+    color: #546b81;
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .time-period-selector {
+    margin-top: 24px;
+    padding: 20px;
+    background: rgba(248,251,255,0.8);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+  }
+
+  .time-period-selector label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 700;
+    color: #0b1f34;
+  }
+
+  .time-period-selector select,
+  .time-period-selector input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 2px solid #eef6ff;
+    font-size: 16px;
+    transition: all 0.3s ease;
+  }
+
+  .time-period-selector select:focus,
+  .time-period-selector input:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(0,122,255,0.1);
+  }
+
+  .stats-comparison {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+    padding: 16px;
+    background: rgba(52,199,89,0.1);
+    border-radius: 12px;
+    border-left: 4px solid var(--green);
+  }
+
+  .comparison-item {
+    text-align: center;
+  }
+
+  .comparison-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--green);
+  }
+
+  .comparison-label {
+    font-size: 14px;
+    color: #546b81;
+    margin-top: 4px;
+  }
+
+  .expense-card {
+    background: linear-gradient(135deg, rgba(52,199,89,0.1), rgba(46,204,113,0.15));
+    padding: 24px;
+    border-radius: 16px;
+    border: 2px solid rgba(52,199,89,0.3);
+    text-align: center;
+  }
+
+  .expense-amount {
+    font-size: 56px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--green), #2aa952);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 16px 0;
+  }
+
+  .expense-description {
+    font-size: 18px;
+    color: #2d5a3c;
+    font-weight: 600;
+  }
+
+  .stats-instruction {
+    text-align: center;
+    color: #546b81;
+    font-size: 16px;
+    margin-bottom: 16px;
+    font-style: italic;
+  }
+
+  /* responsive */
+  @media (max-width:880px){
+    .welcome-card-old{flex-direction:column;align-items:stretch}
+    svg#parking-lot-canvas{height:520px}
+    #facility-map { height: 400px; }
+    .user-subnav {
+      flex-direction: column;
+    }
+    .stats-selector {
+      flex-direction: column;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- NEW WELCOME PAGE -->
+<div id="new-welcome-screen" class="new-welcome-screen">
+  <div class="floating-elements">
+    <div class="floating-element" style="width: 100px; height: 100px; top: 10%; left: 5%;"></div>
+    <div class="floating-element" style="width: 150px; height: 150px; top: 70%; left: 80%;"></div>
+    <div class="floating-element" style="width: 80px; height: 80px; top: 20%; left: 85%;"></div>
+    <div class="floating-element" style="width: 120px; height: 120px; top: 60%; left: 10%;"></div>
+  </div>
+  
+  <div class="welcome-header">
+    <div class="auth-buttons">
+      <button class="small-auth-btn small-login" onclick="goToAuth('login')">Login</button>
+      <button class="small-auth-btn small-signup" onclick="goToAuth('signup')">Sign Up</button>
+    </div>
+  </div>
+  
+  <div class="welcome-content">
+    <div class="welcome-card">
+      <div class="logo-section">
+        <img src="{{ url_for('static', filename='Traffix_logo.jpg') }}" alt="Traffix Logo" class="logo-img welcome-logo" />
+        <h1 class="app-title">Traffix App</h1>
+      </div>
+      
+      <div class="description-section">
+        <p class="description-text">
+          Welcome to the Traffix application. We are Traffix, where data meets the road. Our aim is to minimize congestions and move cities closer to becoming smarter and greener.
+        </p>
+        
+        <div class="highlight-section">
+          <p class="mission-statement">
+            We are a team based in Armenia, and we were established during the << Inecobank beside you >> program.
+          </p>
+        </div>
+        
+        <p class="description-text">
+          In our app you can check out the traffic in your city street by street. You can reserve parking lots from various facilities in an extremely fast manner. You can also register your parking lot, if any, in our platform and make profit.
+        </p>
+        
+        <p class="description-text" style="font-weight: 600; color: #2ecc71;">
+          Join us in the journey of transforming cities and fixing traffic jams.
+        </p>
+      </div><br><br>
+        <p class="description-text" style="font-weight: 600; color: #2ecc71;">
+          Features that we offer:
+        </p>
+      <div>
+      
+      </div>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🚗</div>
+          <h3 class="feature-title">Traffic Monitoring</h3>
+          <p class="feature-description">Real-time traffic updates and congestion alerts for every street in your city.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🅿️</div>
+          <h3 class="feature-title">Smart Parking</h3>
+          <p class="feature-description">Reserve parking spots instantly with our fast and reliable booking system.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🏢</div>
+          <h3 class="feature-title">Parking Lot Owners</h3>
+          <p class="feature-description">Register your parking facility and start earning with our platform.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OLD WELCOME PAGE (Hidden) -->
+<div id="welcome-screen" class="welcome-screen" style="display:none">
+  <div class="welcome-card-old">
+    <div class="welcome-left">
+      <img src="{{ url_for('static', filename='Traffix_logo.jpg') }}" alt="Traffix Logo" class="logo-img welcome-logo" />
+      <h1>Smart Traffic & Parking — Yerevan</h1>
+      <p class="lead">Monitor traffic, reserve parking spots across the city, and store your reservations with QR pass — all in one elegant app.</p>
+      <div class="slogan">Where data meets the road</div>
+      <p style="color:#506b86;font-size:16px;margin-top:20px">Sign in to continue.</p>
+    </div>
+    <div class="welcome-right">
+      <button class="big-btn btn-login" onclick="goToAuth('login')">Login</button>
+      <button class="big-btn btn-signup" onclick="goToAuth('signup')">Sign Up</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH PAGE (separate) -->
+<div id="auth-screen" class="auth-screen" style="display:none">
+  <div class="auth-card">
+    <div class="logo">
+      <img src="{{ url_for('static', filename='Traffix_logo.jpg') }}" alt="Traffix Logo" class="logo-img header-logo" />
+      <h2 id="auth-title" style="background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">Login</h2>
+    </div>
+    <div class="form-row">
+      <label>Email</label>
+      <input id="auth-email" type="email" placeholder="you@example.com" />
+    </div>
+    <div class="form-row">
+      <label>Password</label>
+      <input id="auth-pass" type="password" placeholder="password" />
+    </div>
+    <div style="display:flex;gap:12px;width:100%">
+      <button class="small-btn" onclick="submitAuth()">Continue</button>
+      <button class="back-link" onclick="showWelcome()">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app" class="main-app" style="display:none">
+  <div class="app-container">
+    <header class="app-header">
+      <div class="logo">
+        <img src="{{ url_for('static', filename='Traffix_logo.jpg') }}" alt="Traffix Logo" class="logo-img header-logo" />
+        <h1>Smart Traffic & Parking</h1>
+      </div>
+      <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('home')">Home</button>
+        <button class="tab-btn" onclick="switchTab('traffic')">Traffic</button>
+        <button class="tab-btn" onclick="switchTab('parking')">Parking</button>
+        <button class="tab-btn" onclick="switchTab('reservations')">My Reservations</button>
+        <button class="tab-btn" onclick="switchTab('register-parking')">Register Your Parking Lot</button>
+        <button class="user-circle-btn" id="user-circle-btn" onclick="switchTab('user')">U</button>
+      </nav>
+    </header>
+
+    <!-- HOME -->
+    <section id="home-section" class="content-section active">
+      <div style="max-width:1100px;margin:0 auto">
+        <div class="logo" style="justify-content:center;margin-bottom:20px">
+          <img src="{{ url_for('static', filename='Traffix_logo.jpg') }}" alt="Traffix Logo" class="logo-img" style="width:200px;height:200px" />
+        </div>
+        <h2 style="margin-bottom:8px;background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">Welcome back to the Traffix app.</h2>
+        <p style="margin-top:0;color:#4b5563;font-size:17px">Pick a section below to continue.</p>
+        <div class="home-grid" style="margin-top:24px">
+          <div class="feature-card-old" onclick="switchTab('traffic')">
+            <div class="feature-icon-old">🚗</div>
+            <h3>Traffic Monitoring</h3>
+            <p style="color:#546b81">See live traffic across the city.</p>
+          </div>
+          <div class="feature-card-old" onclick="switchTab('parking')">
+            <div class="feature-icon-old">🅿️</div>
+            <h3>Smart Parking</h3>
+            <p style="color:#546b81">Reserve parking spots near key landmarks.</p>
+          </div>
+          <div class="feature-card-old" onclick="switchTab('reservations')">
+            <div class="feature-icon-old">📋</div>
+            <h3>My Reservations</h3>
+            <p style="color:#546b81">Your active and past reservations.</p>
+          </div>
+          <div class="feature-card-old" onclick="switchTab('register-parking')">
+            <div class="feature-icon-old">🏢</div>
+            <h3>Register Parking Lot</h3>
+            <p style="color:#546b81">Add your parking facility to our network.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRAFFIC -->
+    <section id="traffic-section" class="content-section">
+      <div style="max-width:1100px;margin:0 auto">
+        <h2 style="background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">Traffic Map</h2>
+        <p style="color:#4b5563;font-size:17px">Interactive traffic view (static image placeholder).</p>
+        <div style="margin-top:16px">
+          <img src="{{ url_for('static', filename='Yerevan-Map.jpg') }}" alt="map" style="width:100%;border-radius:20px;box-shadow:0 20px 40px rgba(10,37,64,0.15)" />
+        </div>
+      </div>
+    </section>
+
+    <!-- PARKING -->
+    <section id="parking-section" class="content-section">
+      <div style="max-width:1100px;margin:0 auto">
+        <!-- Map Selection -->
+        <div id="facility-selection" style="background:linear-gradient(145deg, rgba(255,255,255,0.95), rgba(245,250,255,0.98));padding:28px;border-radius:20px;margin-top:16px;box-shadow:0 20px 40px rgba(10,37,64,0.15);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.3)">
+          <h3 style="background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">Select Parking Facility</h3>
+          <p style="color:#546b81;font-size:16px">Click on a parking facility marker to see details and select it</p>
+          <div id="facility-map"></div>
+          <div id="selected-facility-info" style="display:none;margin-top:16px;padding:16px;background:rgba(248,251,255,0.8);border-radius:12px;backdrop-filter:blur(10px)">
+            <h4 id="selected-facility-name" style="color:#0a2540"></h4>
+            <p id="selected-facility-address" style="margin:6px 0;color:#546b81"></p>
+            <p id="selected-facility-spaces" style="margin:6px 0;color:#546b81"></p>
+          </div>
+        </div>
+
+        <!-- Time Picker -->
+        <div id="time-picker" class="time-picker-container" style="display:none">
+          <button class="go-back" onclick="backToFacilitySelection()">← Change Facility</button>
+          <h3 style="background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">Select Reservation Time</h3>
+          <div id="selected-facility-display" style="background:rgba(248,251,255,0.8);padding:16px;border-radius:12px;margin-bottom:16px;backdrop-filter:blur(10px)"></div>
+          <div class="datetime-group">
+            <label>Date</label>
+            <input id="reservation-date" type="date" />
+          </div>
+          <div class="datetime-group" style="display:flex;gap:12px">
+            <div style="flex:1">
+              <label>Start Time</label>
+              <input id="start-time" type="time" />
+            </div>
+            <div style="flex:1">
+              <label>End Time</label>
+              <input id="end-time" type="time" />
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <button class="proceed-btn" onclick="showParkingLot()">View Available Spots</button>
+          </div>
+        </div>
+
+        <!-- Parking lot illustration -->
+        <div id="parking-lot-view" style="margin-top:20px;display:none">
+          <button class="go-back" onclick="backToPicker()">← Change Time</button>
+          <h3 id="parking-facility-name" style="margin-top:12px;background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;"></h3>
+          <p id="parking-facility-address" style="color:#546b81;margin-top:6px;font-size:16px"></p>
+
+          <svg id="parking-lot-canvas" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet">
+            <!-- background gradient for depth -->
+            <defs>
+              <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#f7fbff"/>
+                <stop offset="1" stop-color="#ffffff"/>
+              </linearGradient>
+              <filter id="elev" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#0a2540" flood-opacity="0.06"/>
+              </filter>
+            </defs>
+
+            <!-- outer border -->
+            <rect x="20" y="20" width="1160" height="660" rx="12" fill="url(#g1)" />
+
+            <!-- central vertical road -->
+            <rect x="560" y="40" width="80" height="620" rx="6" class="road" />
+
+            <!-- horizontal roads separating rows -->
+            <rect x="40" y="160" width="500" height="36" rx="6" class="road" />
+            <rect x="660" y="160" width="500" height="36" rx="6" class="road" />
+            <rect x="40" y="300" width="500" height="36" rx="6" class="road" />
+            <rect x="660" y="300" width="500" height="36" rx="6" class="road" />
+            <rect x="40" y="440" width="500" height="36" rx="6" class="road" />
+            <rect x="660" y="440" width="500" height="36" rx="6" class="road" />
+            <rect x="40" y="580" width="500" height="36" rx="6" class="road" />
+            <rect x="660" y="580" width="500" height="36" rx="6" class="road" />
+
+            <!-- decorative entrance/lanes -->
+            <rect x="40" y="40" width="500" height="36" rx="6" fill="#e8eef2" />
+            <rect x="660" y="40" width="500" height="36" rx="6" fill="#e8eef2" />
+            <rect x="40" y="616" width="500" height="36" rx="6" fill="#e8eef2" />
+            <rect x="660" y="616" width="500" height="36" rx="6" fill="#e8eef2" />
+
+            <!-- parking spots generation area -->
+            <g id="left-spots"></g>
+            <g id="right-spots"></g>
+
+            <!-- center labels / guidance -->
+            <text x="600" y="80" text-anchor="middle" fill="#1f2b3a" font-weight="700" font-size="18">Central Drive</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESERVATIONS -->
+    <section id="reservations-section" class="content-section">
+      <div style="max-width:1100px;margin:0 auto">
+        <h3 style="background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">My Reservations</h3>
+        <div id="reservations-list" style="margin-top:16px">No reservations yet.</div>
+      </div>
+    </section>
+
+    <!-- REGISTER YOUR PARKING LOT -->
+    <section id="register-parking-section" class="content-section">
+      <div style="max-width:800px;margin:0 auto">
+        <h2 style="background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">Register Your Parking Lot</h2>
+        <p style="color:#4b5563;font-size:17px">Add your parking facility to our network and start earning.</p>
+        
+        <div id="registration-form" class="register-container">
+          <div class="form-row">
+            <label>First Name</label>
+            <input id="first-name" type="text" placeholder="Enter your first name" />
+          </div>
+          <div class="form-row">
+            <label>Last Name</label>
+            <input id="last-name" type="text" placeholder="Enter your last name" />
+          </div>
+          <div class="form-row">
+            <label>Email</label>
+            <input id="reg-email" type="email" placeholder="you@example.com" />
+          </div>
+          
+          <div class="form-row">
+            <p>Please download and fill out the registration form, then upload it along with any required documents.</p>
+            <a href="/download-registration-form" class="download-link">Download the registration form here</a>
+          </div>
+          
+          <div class="form-row">
+            <label>Attachments</label>
+            <div id="drop-zone" class="drop-zone">
+              <p>Drag and drop files here or click to select</p>
+              <input type="file" id="file-input" multiple style="display:none" />
+            </div>
+            <div id="file-list" class="file-list"></div>
+          </div>
+          
+          <div style="display:flex;gap:12px;margin-top:24px">
+            <button class="small-btn" onclick="submitRegistration()">Submit Registration</button>
+            <button class="back-link" onclick="switchTab('home')">Back to Home</button>
+          </div>
+        </div>
+        
+        <div id="registration-success" class="register-container" style="display:none">
+          <div class="success-message">
+            <div class="success-icon">✅</div>
+            <h3 style="background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">Registration Received!</h3>
+            <p style="color:#546b81;margin:16px 0">Thank you for your interest in registering your parking lot with Traffix. We will review your application and contact you within 3-5 business days.</p>
+            <button class="proceed-btn" onclick="switchTab('home')">Back to Home</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- USER SECTION -->
+    <section id="user-section" class="content-section">
+      <div style="max-width:800px;margin:0 auto">
+        <div class="user-section-container">
+          <div class="user-email-display">
+            <h3 id="user-email-display">user@example.com</h3>
+          </div>
+          
+          <div class="user-subnav">
+            <button class="user-subnav-btn active" onclick="switchUserSubsection('credit-card')">Attach a Credit Card</button>
+            <button class="user-subnav-btn" onclick="switchUserSubsection('personal-statistics')">Personal Statistics</button>
+            <button class="user-subnav-btn" onclick="switchUserSubsection('my-parking-lots')">My Parking Lots</button>
+            <button class="user-subnav-btn" onclick="switchUserSubsection('settings')">Settings</button>
+          </div>
+          
+          <!-- Credit Card Subsection -->
+          <div id="credit-card-subsection" class="user-subsection active">
+            <h4 style="background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">Credit Card Information</h4>
+            
+            <!-- Credit Card Authentication Form -->
+            <div id="cc-auth-form" class="cc-auth-form" style="display: none;">
+              <h5>Please verify your identity to view credit card information</h5>
+              <div class="form-row">
+                <label>Email</label>
+                <input id="cc-auth-email" type="email" placeholder="Enter your email" />
+              </div>
+              <div class="form-row">
+                <label>Password</label>
+                <input id="cc-auth-password" type="password" placeholder="Enter your password" />
+              </div>
+              <div style="margin-top:16px">
+                <button class="small-btn" onclick="authenticateCreditCard()">Verify Identity</button>
+              </div>
+            </div>
+            
+            <!-- Credit Card Form (hidden until authenticated) -->
+            <div id="cc-form" style="display: none;">
+              <div class="form-row">
+                <label>Cardholder Name</label>
+                <input id="cardholder-name" type="text" placeholder="John Doe" />
+              </div>
+              <div class="form-row">
+                <label>Card Number</label>
+                <input id="card-number" type="text" placeholder="1234 5678 9012 3456" />
+              </div>
+              <div style="display:flex;gap:12px">
+                <div class="form-row" style="flex:1">
+                  <label>Expiry Date</label>
+                  <input id="expiry-date" type="text" placeholder="MM/YY" />
+                </div>
+                <div class="form-row" style="flex:1">
+                  <label>CVV</label>
+                  <input id="cvv" type="text" placeholder="123" />
+                </div>
+              </div>
+              <div style="margin-top:24px">
+                <button class="small-btn" onclick="saveCreditCard()">Save Card</button>
+              </div>
+            </div>
+            
+            <!-- Saved Credit Card Info (hidden by default) -->
+            <div id="saved-cc-info" style="display: none;">
+              <div style="background: rgba(52,199,89,0.1); padding: 16px; border-radius: 12px; border: 2px solid rgba(52,199,89,0.3);">
+                <h5 style="color: #2aa952; margin: 0 0 12px 0;">Credit Card Saved</h5>
+                <div style="color: #546b81;">
+                  <div><strong>Cardholder:</strong> <span id="saved-cardholder"></span></div>
+                  <div><strong>Card Number:</strong> **** **** **** <span id="saved-last-four"></span></div>
+                  <div><strong>Expires:</strong> <span id="saved-expiry"></span></div>
+                </div>
+                <button class="back-link" onclick="editCreditCard()" style="margin-top: 12px;">Edit Card</button>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Personal Statistics Subsection -->
+          <div id="personal-statistics-subsection" class="user-subsection">
+            <h4 style="background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">Personal Statistics</h4>
+            
+            <!-- Initial Selection View -->
+            <div id="stats-initial-view">
+              <p class="stats-instruction">Choose what you want to take a look at</p>
+              <div class="stats-selector">
+                <button class="stats-selector-btn" onclick="selectStatsType('traffic')">Time Lost to Traffic</button>
+                <button class="stats-selector-btn" onclick="selectStatsType('expenses')">Expenses to Parking Lots</button>
+                <button class="stats-selector-btn" onclick="selectStatsType('income')">Income from My Parking Lots</button>
+              </div>
+            </div>
+            
+            <!-- Income Message View -->
+            <div id="income-message" class="stats-card" style="display: none; text-align: center; padding: 40px;">
+              <div class="stats-icon">💰</div>
+              <p style="color: #546b81; font-size: 18px; margin-bottom: 20px;">You don't have registered parking lots yet.</p>
+              <button class="go-back" onclick="backToStatsType()">Go Back</button>
+            </div>
+            
+            <!-- Time Period Selection View (hidden initially) -->
+            <div id="stats-period-selection" style="display: none;">
+              <p class="stats-instruction">Choose the time period</p>
+              <div class="stats-selector">
+                <button class="stats-selector-btn" onclick="selectStatsPeriod('daily')">Daily</button>
+                <button class="stats-selector-btn" onclick="selectStatsPeriod('weekly')">Weekly</button>
+                <button class="stats-selector-btn" onclick="selectStatsPeriod('monthly')">Monthly</button>
+              </div>
+              <button class="go-back" onclick="backToStatsType()" style="margin-top: 16px;">← Back to Selection</button>
+            </div>
+            
+            <!-- Statistics Display -->
+            <div id="stats-display" style="display: none;">
+              <!-- Time Period Selection for Stats -->
+              <div id="traffic-time-selector" class="time-period-selector" style="display: none;">
+                <!-- Dynamic content will be inserted here -->
+              </div>
+              
+              <div id="expenses-time-selector" class="time-period-selector" style="display: none;">
+                <!-- Dynamic content will be inserted here -->
+              </div>
+              
+              <!-- Statistics Display -->
+              <div id="traffic-stats-display" class="stats-card" style="display:none;">
+                <div class="stats-icon">⏱️</div>
+                <div id="traffic-stats-content">
+                  <!-- Dynamic content will be inserted here -->
+                </div>
+              </div>
+              
+              <div id="expenses-stats-display" class="stats-card" style="display:none;">
+                <div class="stats-icon">💳</div>
+                <div id="expenses-stats-content">
+                  <!-- Dynamic content will be inserted here -->
+                </div>
+              </div>
+              
+              <button class="go-back" onclick="backToStatsPeriod()" style="margin-top: 16px;">← Back to Time Period</button>
+            </div>
+          </div>
+
+          
+          <!-- My Parking Lots Subsection -->
+          <div id="my-parking-lots-subsection" class="user-subsection">
+            <h4 style="background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">My Parking Lots</h4>
+            <div style="text-align:center;padding:40px;background:rgba(255,255,255,0.8);border-radius:12px;">
+              <p style="color:#546b81;font-size:16px">You don't have registered parking lots yet.</p>
+              <button class="proceed-btn" onclick="switchTab('register-parking')" style="margin-top:16px">Register a Parking Lot</button>
+            </div>
+          </div>
+          
+          <!-- Settings Subsection -->
+          <div id="settings-subsection" class="user-subsection">
+            <h4 style="background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">Settings</h4>
+            
+            <div class="settings-option">
+              <div>
+                <strong>Dark Mode</strong>
+                <p style="margin:4px 0 0 0;color:#546b81;font-size:14px">Switch between light and dark theme</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="dark-mode-toggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            
+            <div class="settings-option">
+              <div>
+                <strong>Notifications</strong>
+                <p style="margin:4px 0 0 0;color:#546b81;font-size:14px">Receive notifications for reservations</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="notifications-toggle" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            
+            <div class="settings-option">
+              <div>
+                <strong>Auto-renew Reservations</strong>
+                <p style="margin:4px 0 0 0;color:#546b81;font-size:14px">Automatically extend parking reservations</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="auto-renew-toggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            
+            <div style="margin-top:24px">
+              <button class="small-btn" onclick="saveSettings()">Save Settings</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Parking Spot Modal -->
+<div id="parking-modal" class="modal">
+  <div class="modal-card">
+    <h3 style="background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">Reserve Parking Spot</h3>
+    <div id="spot-details" style="margin-top:12px;color:#34485a;font-size:15px"></div>
+    <div style="margin-top:16px" class="reserve-row">
+      <button class="reserve-btn white" onclick="confirmReservation(false)">Reserve — 800 AMD</button>
+      <button class="reserve-btn green" onclick="confirmReservation(true)">Pay with InecoMobile — 20% OFF</button>
+    </div>
+    <div style="margin-top:16px;display:flex;justify-content:flex-end">
+      <button class="go-back" onclick="closeParkingModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR Modal -->
+<div id="qr-modal" class="modal">
+  <div class="modal-card" style="text-align:center">
+    <h3 style="background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">Reservation Confirmed</h3>
+    <div class="qr-code" style="margin:20px 0">
+      <img id="qr-img" src="" alt="QR" />
+    </div>
+    <div id="qr-details" style="color:#34485a;font-size:16px"></div>
+    <button class="show-path-btn" onclick="showPath()">Show the Path</button>
+    <div style="margin-top:20px">
+      <button class="proceed-btn" onclick="closeQRModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Global Variables ---------- */
+let userEmail = '';
+let userPassword = '';
+let userInitial = 'U';
+let creditCardAuthenticated = false;
+let savedCreditCard = null;
+let currentStatsType = '';
+let currentStatsPeriod = '';
+
+/* ---------- Simple Auth flow (Option B) ---------- */
+function goToAuth(kind){
+  document.getElementById('new-welcome-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('auth-title').textContent = kind === 'login' ? 'Login' : 'Sign Up';
+}
+
+function showWelcome(){
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('new-welcome-screen').style.display = 'block';
+}
+
+function submitAuth(){
+  // Get the email and password from the auth form
+  userEmail = document.getElementById('auth-email').value;
+  userPassword = document.getElementById('auth-pass').value;
+  
+  if (!userEmail) {
+    userEmail = 'user@example.com'; // fallback
+  }
+  if (!userPassword) {
+    userPassword = 'password'; // fallback
+  }
+  
+  // Set user initial for the circle button
+  userInitial = userEmail.charAt(0).toUpperCase();
+  document.getElementById('user-circle-btn').textContent = userInitial;
+  
+  // Update the user email display
+  document.getElementById('user-email-display').textContent = userEmail;
+  
+  // Clear any saved credit card data for fresh session
+  savedCreditCard = null;
+  localStorage.removeItem('savedCreditCard');
+  
+  // Hide all screens and show main app
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('new-welcome-screen').style.display = 'none';
+  document.getElementById('welcome-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  
+  // Switch to home tab
+  switchTab('home');
+}
+
+/* ---------- Tabs ---------- */
+function switchTab(tab){
+  // tab buttons
+  document.querySelectorAll('.nav-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  const btn = Array.from(document.querySelectorAll('.nav-tabs .tab-btn')).find(x=>x.textContent.toLowerCase().startsWith(tab));
+  if(btn) btn.classList.add('active');
+  
+  // If switching to user tab, update the circle button to appear active
+  const userCircleBtn = document.getElementById('user-circle-btn');
+  if (tab === 'user') {
+    userCircleBtn.style.background = 'linear-gradient(135deg, var(--green), #2aa952)';
+    // Reset credit card authentication when switching to user tab
+    creditCardAuthenticated = false;
+    checkCreditCardAuth();
+    // Reset personal statistics view
+    resetPersonalStats();
+  } else {
+    userCircleBtn.style.background = 'linear-gradient(135deg, var(--blue), var(--blue-dark))';
+  }
+  
+  // sections
+  document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active'));
+  const map = {
+    home: 'home-section',
+    traffic: 'traffic-section',
+    parking: 'parking-section',
+    reservations: 'reservations-section',
+    'register-parking': 'register-parking-section',
+    'user': 'user-section'
+  };
+  const id = map[tab] || 'home-section';
+  document.getElementById(id).classList.add('active');
+  
+  // Initialize map when parking tab is opened
+  if(tab === 'parking' && !window.mapInitialized){
+    initializeMap();
+    window.mapInitialized = true;
+  }
+}
+
+/* ---------- User Subsection Navigation ---------- */
+function switchUserSubsection(subsection) {
+  // Update subnav buttons
+  document.querySelectorAll('.user-subnav-btn').forEach(b=>b.classList.remove('active'));
+  const btn = Array.from(document.querySelectorAll('.user-subnav-btn')).find(x=>x.textContent.toLowerCase().includes(subsection));
+  if(btn) btn.classList.add('active');
+  
+  // Update subsections
+  document.querySelectorAll('.user-subsection').forEach(s=>s.classList.remove('active'));
+  const id = `${subsection}-subsection`;
+  document.getElementById(id).classList.add('active');
+  
+  // Special handling for credit card section
+  if (subsection === 'credit-card') {
+    creditCardAuthenticated = false;
+    checkCreditCardAuth();
+  }
+  
+  // Reset personal statistics when switching to it
+  if (subsection === 'personal-statistics') {
+    resetPersonalStats();
+  }
+}
+
+/* ---------- Personal Statistics Functions ---------- */
+function resetPersonalStats() {
+  currentStatsType = '';
+  currentStatsPeriod = '';
+  
+  // Reset all views to initial state
+  document.getElementById('stats-initial-view').style.display = 'block';
+  document.getElementById('income-message').style.display = 'none';
+  document.getElementById('stats-period-selection').style.display = 'none';
+  document.getElementById('stats-display').style.display = 'none';
+  
+  // Reset all buttons
+  document.querySelectorAll('#stats-initial-view .stats-selector-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.querySelectorAll('#stats-period-selection .stats-selector-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Hide all stats displays
+  document.getElementById('traffic-stats-display').style.display = 'none';
+  document.getElementById('expenses-stats-display').style.display = 'none';
+  document.getElementById('traffic-time-selector').style.display = 'none';
+  document.getElementById('expenses-time-selector').style.display = 'none';
+}
+
+function selectStatsType(type) {
+  currentStatsType = type;
+  
+  // Update buttons - remove active from all, then add to clicked one
+  document.querySelectorAll('#stats-initial-view .stats-selector-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+
+  if (type === 'income') {
+    // Show the income message and hide the initial view
+    document.getElementById('stats-initial-view').style.display = 'none';
+    document.getElementById('income-message').style.display = 'block';
+  } else {
+    // For other types, show the period selection
+    document.getElementById('stats-initial-view').style.display = 'none';
+    document.getElementById('stats-period-selection').style.display = 'block';
+  }
+}
+
+function selectStatsPeriod(period) {
+  currentStatsPeriod = period;
+  
+  // Update buttons - remove active from all, then add to clicked one
+  document.querySelectorAll('#stats-period-selection .stats-selector-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  
+  // Show stats display
+  document.getElementById('stats-period-selection').style.display = 'none';
+  document.getElementById('stats-display').style.display = 'block';
+  
+  // Show appropriate time selector and update stats
+  if (currentStatsType === 'traffic') {
+    document.getElementById('expenses-time-selector').style.display = 'none';
+    document.getElementById('expenses-stats-display').style.display = 'none';
+    document.getElementById('traffic-time-selector').style.display = 'block';
+    showTrafficPeriodInput();
+    updateTrafficStats();
+  } else {
+    document.getElementById('traffic-time-selector').style.display = 'none';
+    document.getElementById('traffic-stats-display').style.display = 'none';
+    document.getElementById('expenses-time-selector').style.display = 'block';
+    showExpensesPeriodInput();
+    updateExpensesStats();
+  }
+}
+
+function backToStatsType() {
+  document.getElementById('income-message').style.display = 'none';
+  document.getElementById('stats-period-selection').style.display = 'none';
+  document.getElementById('stats-initial-view').style.display = 'block';
+  currentStatsType = '';
+}
+
+function backToStatsPeriod() {
+  document.getElementById('stats-display').style.display = 'none';
+  document.getElementById('stats-period-selection').style.display = 'block';
+  currentStatsPeriod = '';
+}
+
+function showTrafficPeriodInput() {
+  const selector = document.getElementById('traffic-time-selector');
+  
+  if (currentStatsPeriod === 'daily') {
+    selector.innerHTML = `
+      <label>Select Date</label>
+      <input type="date" id="traffic-date-input" value="${new Date().toISOString().split('T')[0]}" onchange="updateTrafficStats()" />
+    `;
+  } else if (currentStatsPeriod === 'weekly') {
+    selector.innerHTML = `
+      <label>Select Week</label>
+      <input type="week" id="traffic-week-input" value="${getISOWeek()}" onchange="updateTrafficStats()" />
+    `;
+  } else if (currentStatsPeriod === 'monthly') {
+    selector.innerHTML = `
+      <label>Select Month</label>
+      <input type="month" id="traffic-month-input" value="${new Date().toISOString().slice(0, 7)}" onchange="updateTrafficStats()" />
+    `;
+  }
+}
+
+function showExpensesPeriodInput() {
+  const selector = document.getElementById('expenses-time-selector');
+  
+  if (currentStatsPeriod === 'daily') {
+    selector.innerHTML = `
+      <label>Select Date</label>
+      <input type="date" id="expenses-date-input" value="${new Date().toISOString().split('T')[0]}" onchange="updateExpensesStats()" />
+    `;
+  } else if (currentStatsPeriod === 'weekly') {
+    selector.innerHTML = `
+      <label>Select Week</label>
+      <input type="week" id="expenses-week-input" value="${getISOWeek()}" onchange="updateExpensesStats()" />
+    `;
+  } else if (currentStatsPeriod === 'monthly') {
+    selector.innerHTML = `
+      <label>Select Month</label>
+      <input type="month" id="expenses-month-input" value="${new Date().toISOString().slice(0, 7)}" onchange="updateExpensesStats()" />
+    `;
+  }
+}
+
+function updateTrafficStats() {
+  const display = document.getElementById('traffic-stats-display');
+  const content = document.getElementById('traffic-stats-content');
+  
+  let baseValue, variance, unit, periodText, selectedDate;
+  
+  if (currentStatsPeriod === 'daily') {
+    baseValue = 2;
+    variance = 0.5;
+    unit = 'minutes';
+    const dateInput = document.getElementById('traffic-date-input');
+    selectedDate = new Date(dateInput.value);
+    const today = new Date().toDateString();
+    const selected = selectedDate.toDateString();
+    periodText = selected === today ? 'today' : `on ${selectedDate.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}`;
+  } else if (currentStatsPeriod === 'weekly') {
+    baseValue = 10;
+    variance = 0.5;
+    unit = 'minutes';
+    const weekInput = document.getElementById('traffic-week-input');
+    const currentWeek = getISOWeek();
+    periodText = weekInput.value === currentWeek ? 'this week' : `in week ${weekInput.value}`;
+  } else if (currentStatsPeriod === 'monthly') {
+    baseValue = 40;
+    variance = 0.1;
+    unit = 'minutes';
+    const monthInput = document.getElementById('traffic-month-input');
+    const date = new Date(monthInput.value + '-01');
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    periodText = monthInput.value === currentMonth ? 'this month' : `in ${date.toLocaleDateString('en-US', {month: 'long', year: 'numeric'})}`;
+  }
+  
+  const randomFactor = 1 + (Math.random() * variance * 2 - variance);
+  const value = Math.round(baseValue * randomFactor);
+  
+  content.innerHTML = `
+    <div class="stats-number">${value}</div>
+    <div class="stats-label">${unit} lost to traffic ${periodText}</div>
+    <div class="stats-comparison" style="margin-top: 20px;">
+      <div class="comparison-item">
+        <div class="comparison-value">-${Math.round(10 + Math.random() * 20)}%</div>
+        <div class="comparison-label">vs. previous period</div>
+      </div>
+    </div>
+  `;
+  
+  display.style.display = 'block';
+}
+
+function updateExpensesStats() {
+  const display = document.getElementById('expenses-stats-display');
+  const content = document.getElementById('expenses-stats-content');
+  
+  let baseValue, variance, periodText, selectedDate;
+  
+  if (currentStatsPeriod === 'daily') {
+    baseValue = 200;
+    variance = 0.5;
+    const dateInput = document.getElementById('expenses-date-input');
+    selectedDate = new Date(dateInput.value);
+    const today = new Date().toDateString();
+    const selected = selectedDate.toDateString();
+    periodText = selected === today ? 'today' : `on ${selectedDate.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}`;
+  } else if (currentStatsPeriod === 'weekly') {
+    baseValue = 1000;
+    variance = 0.5;
+    const weekInput = document.getElementById('expenses-week-input');
+    const currentWeek = getISOWeek();
+    periodText = weekInput.value === currentWeek ? 'this week' : `in week ${weekInput.value}`;
+  } else if (currentStatsPeriod === 'monthly') {
+    baseValue = 4000;
+    variance = 0.1;
+    const monthInput = document.getElementById('expenses-month-input');
+    const date = new Date(monthInput.value + '-01');
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    periodText = monthInput.value === currentMonth ? 'this month' : `in ${date.toLocaleDateString('en-US', {month: 'long', year: 'numeric'})}`;
+  }
+  
+  const randomFactor = 1 + (Math.random() * variance * 2 - variance);
+  const value = Math.round(baseValue * randomFactor);
+  
+  content.innerHTML = `
+    <div class="expense-card">
+      <div class="expense-amount">${value.toLocaleString()}</div>
+      <div class="expense-description">AMD paid for parking lots ${periodText}</div>
+    </div>
+  `;
+  
+  display.style.display = 'block';
+}
+
+function getISOWeek() {
+  const date = new Date();
+  const year = date.getFullYear();
+  const firstDayOfYear = new Date(year, 0, 1);
+  const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+  const weekNumber = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+  return `${year}-W${weekNumber.toString().padStart(2, '0')}`;
+}
+
+/* ---------- Credit Card Authentication ---------- */
+function checkCreditCardAuth() {
+  const authForm = document.getElementById('cc-auth-form');
+  const ccForm = document.getElementById('cc-form');
+  const savedInfo = document.getElementById('saved-cc-info');
+  
+  // If we have saved credit card and user is authenticated, show saved info
+  if (savedCreditCard && creditCardAuthenticated) {
+    authForm.style.display = 'none';
+    ccForm.style.display = 'none';
+    savedInfo.style.display = 'block';
+    
+    // Populate saved info
+    document.getElementById('saved-cardholder').textContent = savedCreditCard.cardholderName;
+    document.getElementById('saved-last-four').textContent = savedCreditCard.cardNumber.slice(-4);
+    document.getElementById('saved-expiry').textContent = savedCreditCard.expiryDate;
+  } 
+  // If user is authenticated but no saved card, show form
+  else if (creditCardAuthenticated) {
+    authForm.style.display = 'none';
+    ccForm.style.display = 'block';
+    savedInfo.style.display = 'none';
+  } 
+  // Otherwise, show authentication form
+  else {
+    authForm.style.display = 'block';
+    ccForm.style.display = 'none';
+    savedInfo.style.display = 'none';
+  }
+}
+
+function authenticateCreditCard() {
+  const email = document.getElementById('cc-auth-email').value;
+  const password = document.getElementById('cc-auth-password').value;
+  
+  if (email === userEmail && password === userPassword) {
+    creditCardAuthenticated = true;
+    checkCreditCardAuth();
+  } else {
+    alert('Invalid email or password. Please try again.');
+  }
+}
+
+function editCreditCard() {
+  creditCardAuthenticated = true;
+  checkCreditCardAuth();
+  
+  // Populate form with saved data
+  if (savedCreditCard) {
+    document.getElementById('cardholder-name').value = savedCreditCard.cardholderName;
+    document.getElementById('card-number').value = savedCreditCard.cardNumber;
+    document.getElementById('expiry-date').value = savedCreditCard.expiryDate;
+    document.getElementById('cvv').value = savedCreditCard.cvv;
+  }
+}
+
+/* ---------- Credit Card Functions ---------- */
+function saveCreditCard() {
+  const cardholderName = document.getElementById('cardholder-name').value;
+  const cardNumber = document.getElementById('card-number').value;
+  const expiryDate = document.getElementById('expiry-date').value;
+  const cvv = document.getElementById('cvv').value;
+  
+  if (!cardholderName || !cardNumber || !expiryDate || !cvv) {
+    alert('Please fill in all credit card fields.');
+    return;
+  }
+  
+  // Save credit card data
+  savedCreditCard = {
+    cardholderName,
+    cardNumber,
+    expiryDate,
+    cvv
+  };
+  
+  // Save to localStorage (in a real app, this would be encrypted and sent to a server)
+  localStorage.setItem('savedCreditCard', JSON.stringify(savedCreditCard));
+  
+  // Show success message
+  showSuccessMessage('Credit card saved successfully!');
+  
+  // Update UI
+  checkCreditCardAuth();
+  
+  // Redirect to home after a delay
+  setTimeout(() => {
+    switchTab('home');
+  }, 2000);
+}
+
+/* ---------- Settings Functions ---------- */
+function saveSettings() {
+  const darkMode = document.getElementById('dark-mode-toggle').checked;
+  const notifications = document.getElementById('notifications-toggle').checked;
+  const autoRenew = document.getElementById('auto-renew-toggle').checked;
+  
+  // In a real app, you would save these settings to a server
+  console.log('Settings saved:', { darkMode, notifications, autoRenew });
+  
+  // Show success message
+  showSuccessMessage('Settings saved successfully!');
+  
+  // Redirect to home after a delay
+  setTimeout(() => {
+    switchTab('home');
+  }, 2000);
+}
+
+/* ---------- Success Message Function ---------- */
+function showSuccessMessage(message) {
+  // Remove any existing success messages
+  const existingAlert = document.querySelector('.success-alert');
+  if (existingAlert) {
+    existingAlert.remove();
+  }
+  
+  // Create new success message
+  const alert = document.createElement('div');
+  alert.className = 'success-alert';
+  alert.innerHTML = `
+    <span>✅</span>
+    <span>${message}</span>
+  `;
+  
+  document.body.appendChild(alert);
+  
+  // Remove after 3 seconds
+  setTimeout(() => {
+    alert.remove();
+  }, 3000);
+}
+
+/* ---------- Map functionality ---------- */
+let selectedFacility = null;
+let currentReservationData = {};
+let reservations = [];
+let selectedSpot = null;
+let map;
+
+function initializeMap(){
+  // Initialize the map centered on Yerevan
+  map = L.map('facility-map').setView([40.1792, 44.4991], 13);
+  
+  // Add OpenStreetMap tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  // Define parking facilities with coordinates in Yerevan
+  const facilities = [
+    {
+      name: "Republic Square Parking",
+      address: "Republic Square, Yerevan",
+      lat: 40.1775,
+      lng: 44.5126,
+      freeSpaces: Math.floor(Math.random() * 20) + 5
+    },
+    {
+      name: "Northern Avenue Parking", 
+      address: "Northern Avenue, Yerevan (Northern Ave 5)",
+      lat: 40.1815,
+      lng: 44.5150,
+      freeSpaces: Math.floor(Math.random() * 15) + 3
+    },
+    {
+      name: "Cascade Complex Parking",
+      address: "10 Tamanyan St, Yerevan", 
+      lat: 40.1910,
+      lng: 44.5158,
+      freeSpaces: Math.floor(Math.random() * 25) + 10
+    },
+    {
+      name: "Opera House Parking",
+      address: "Tumanyan Street, Yerevan",
+      lat: 40.1852, 
+      lng: 44.5139,
+      freeSpaces: Math.floor(Math.random() * 30) + 8
+    }
+  ];
+
+  // Add markers for each facility
+  facilities.forEach(facility => {
+    const marker = L.marker([facility.lat, facility.lng]).addTo(map);
+    
+    // Create popup content
+    const popupContent = `
+      <div class="facility-info">
+        <h4>${facility.name}</h4>
+        <p><strong>Address:</strong> ${facility.address}</p>
+        <p><strong>Free Spaces:</strong> ${facility.freeSpaces}</p>
+        <button class="select-facility-btn" onclick="selectFacilityFromMap()">Select This Facility</button>
+      </div>
+    `;
+    
+    marker.bindPopup(popupContent);
+    
+    // Also allow clicking on marker to select
+    marker.on('click', function() {
+      selectFacility(facility);
+    });
+  });
+}
+
+function selectFacility(facility){
+  selectedFacility = facility;
+  
+  // Update the facility info display
+  document.getElementById('selected-facility-name').textContent = facility.name;
+  document.getElementById('selected-facility-address').textContent = facility.address;
+  document.getElementById('selected-facility-spaces').textContent = `Free Spaces: ${facility.freeSpaces}`;
+  document.getElementById('selected-facility-info').style.display = 'block';
+}
+
+function selectFacilityFromMap(){
+  if(!selectedFacility) return;
+  
+  // Hide map and show time picker
+  document.getElementById('facility-selection').style.display = 'none';
+  document.getElementById('time-picker').style.display = 'block';
+  
+  // Update the display in time picker
+  document.getElementById('selected-facility-display').innerHTML = `
+    <strong>Selected Facility:</strong> ${selectedFacility.name}<br>
+    <strong>Address:</strong> ${selectedFacility.address}<br>
+    <strong>Free Spaces:</strong> ${selectedFacility.freeSpaces}
+  `;
+}
+
+function backToFacilitySelection(){
+  document.getElementById('time-picker').style.display = 'none';
+  document.getElementById('facility-selection').style.display = 'block';
+  selectedFacility = null;
+}
+
+/* ---------- Parking logic ---------- */
+function showParkingLot(){
+  if(!selectedFacility){
+    alert('Please select a facility first.');
+    return;
+  }
+  
+  const date = document.getElementById('reservation-date').value;
+  const start = document.getElementById('start-time').value;
+  const end = document.getElementById('end-time').value;
+
+  if(!date || !start || !end){
+    alert('Please fill date, start and end time.');
+    return;
+  }
+  
+  currentReservationData = {
+    date, start, end, 
+    facility: selectedFacility.name,
+    address: selectedFacility.address
+  };
+
+  // Update parking lot header
+  document.getElementById('parking-facility-name').textContent = selectedFacility.name;
+  document.getElementById('parking-facility-address').textContent = selectedFacility.address;
+
+  document.getElementById('time-picker').style.display = 'none';
+  const view = document.getElementById('parking-lot-view');
+  view.style.display = 'block';
+  view.classList.add('active');
+
+  generateParkingIllustration();
+}
+
+function backToPicker(){
+  document.getElementById('parking-lot-view').style.display = 'none';
+  document.getElementById('time-picker').style.display = 'block';
+  selectedSpot = null;
+}
+
+function generateParkingIllustration(){
+  const leftGroup = document.getElementById('left-spots');
+  const rightGroup = document.getElementById('right-spots');
+  leftGroup.innerHTML = '';
+  rightGroup.innerHTML = '';
+
+  const rows = 5;
+  const cols = 6;
+  const spotW = 72, spotH = 42;
+  const gapX = 12;
+
+  function createSpot(x,y,spotNum,available, parent){
+    const ns = "http://www.w3.org/2000/svg";
+    const group = document.createElementNS(ns,'g');
+    group.setAttribute('transform', `translate(${x},${y})`);
+    
+    const rect = document.createElementNS(ns,'rect');
+    rect.setAttribute('width', spotW);
+    rect.setAttribute('height', spotH);
+    rect.setAttribute('rx', 8);
+    rect.setAttribute('class', 'spot-rect ' + (available ? 'available' : 'occupied'));
+    rect.setAttribute('fill', available ? '#34c759' : '#ff3b30');
+    rect.setAttribute('stroke', '#0b1f34');
+    rect.setAttribute('stroke-opacity', 0.08);
+    rect.setAttribute('filter','url(#elev)');
+
+    if(available){
+      rect.style.cursor = 'pointer';
+      rect.addEventListener('click', ()=> selectSpot(spotNum));
+    } else {
+      rect.style.cursor = 'not-allowed';
+    }
+
+    const text = document.createElementNS(ns,'text');
+    text.setAttribute('x', spotW/2);
+    text.setAttribute('y', spotH/2 + 6);
+    text.setAttribute('text-anchor','middle');
+    text.setAttribute('fill','#fff');
+    text.setAttribute('class','spot-text');
+    text.setAttribute('font-size','14');
+    text.textContent = spotNum;
+
+    group.appendChild(rect);
+    group.appendChild(text);
+    parent.appendChild(group);
+  }
+
+  // Define row positions between roads
+  const rowPositions = [90, 200, 340, 480, 620];
+  let num = 1;
+
+  // Left side spots
+  for(let r=0; r<rows; r++){
+    const y = rowPositions[r];
+    for(let c=0; c<cols; c++){
+      const x = 40 + c * (spotW + gapX);
+      const available = Math.random() < 0.76;
+      createSpot(x, y, num, available, leftGroup);
+      num++;
+    }
+  }
+
+  // Right side spots
+  const startRightNum = num;
+  for(let r=0; r<rows; r++){
+    const y = rowPositions[r];
+    for(let c=0; c<cols; c++){
+      const x = 660 + c * (spotW + gapX);
+      const available = Math.random() < 0.76;
+      createSpot(x, y, startRightNum + (r*cols + c), available, rightGroup);
+    }
+  }
+}
+
+/* spot selection and reservation modal */
+function selectSpot(num){
+  selectedSpot = num;
+  const details = document.getElementById('spot-details');
+  details.innerHTML = `
+    <div><strong>Facility:</strong> ${currentReservationData.facility}</div>
+    <div><strong>Address:</strong> ${currentReservationData.address}</div>
+    <div><strong>Date:</strong> ${currentReservationData.date}</div>
+    <div><strong>Time:</strong> ${currentReservationData.start} - ${currentReservationData.end}</div>
+    <div><strong>Spot #</strong> ${num}</div>
+  `;
+  document.getElementById('parking-modal').classList.add('active');
+}
+
+function closeParkingModal(){
+  document.getElementById('parking-modal').classList.remove('active');
+}
+
+/* confirm and QR */
+function confirmReservation(withIneco){
+  if(!selectedSpot){
+    alert('No spot selected.');
+    return;
+  }
+  const price = withIneco ? '640 AMD' : '800 AMD';
+  const paymentMethod = withIneco ? 'InecoMobile (20% off)' : 'Regular';
+
+  const qrData = `PARKING:${currentReservationData.facility}|SPOT:${selectedSpot}|DATE:${currentReservationData.date}|TIME:${currentReservationData.start}-${currentReservationData.end}|PRICE:${price}|PAY:${paymentMethod}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
+
+  // save reservation
+  reservations.push({
+    facility: currentReservationData.facility,
+    address: currentReservationData.address,
+    date: currentReservationData.date,
+    start: currentReservationData.start,
+    end: currentReservationData.end,
+    spot: selectedSpot,
+    price: price,
+    qrUrl: qrUrl,
+    method: paymentMethod
+  });
+
+  // show qr modal
+  document.getElementById('qr-img').src = qrUrl;
+  document.getElementById('qr-details').innerHTML = `<strong>${currentReservationData.facility}</strong><br/>Spot ${selectedSpot} — ${price}`;
+  document.getElementById('parking-modal').classList.remove('active');
+  document.getElementById('qr-modal').classList.add('active');
+
+  // update reservations list view
+  renderReservations();
+}
+
+function closeQRModal(){
+  document.getElementById('qr-modal').classList.remove('active');
+  backToPicker();
+}
+
+/* Show Path function */
+function showPath() {
+  // For now, this function does nothing as requested
+  // In a real implementation, this would show navigation to the parking spot
+  console.log("Show path functionality would be implemented here");
+}
+
+/* ---------- Register Parking Lot Functionality ---------- */
+let uploadedFiles = [];
+
+// Initialize drag and drop functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const fileList = document.getElementById('file-list');
+  
+  if (dropZone) {
+    // Click to select files
+    dropZone.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    // Drag and drop events
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('active');
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('active');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('active');
+      handleFiles(e.dataTransfer.files);
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', () => {
+      handleFiles(fileInput.files);
+    });
+  }
+  
+  // Clear any saved credit card data on page load for fresh session
+  localStorage.removeItem('savedCreditCard');
+  savedCreditCard = null;
+});
+
+function handleFiles(files) {
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    uploadedFiles.push(file);
+    
+    // Display file in the list
+    const fileItem = document.createElement('div');
+    fileItem.className = 'file-item';
+    fileItem.innerHTML = `
+      <span>${file.name}</span>
+      <button onclick="removeFile(${uploadedFiles.length - 1})" style="background:none;border:none;color:#ff3b30;cursor:pointer">×</button>
+    `;
+    document.getElementById('file-list').appendChild(fileItem);
+  }
+}
+
+function removeFile(index) {
+  uploadedFiles.splice(index, 1);
+  renderFileList();
+}
+
+function renderFileList() {
+  const fileList = document.getElementById('file-list');
+  fileList.innerHTML = '';
+  
+  uploadedFiles.forEach((file, index) => {
+    const fileItem = document.createElement('div');
+    fileItem.className = 'file-item';
+    fileItem.innerHTML = `
+      <span>${file.name}</span>
+      <button onclick="removeFile(${index})" style="background:none;border:none;color:#ff3b30;cursor:pointer">×</button>
+    `;
+    fileList.appendChild(fileItem);
+  });
+}
+
+function submitRegistration() {
+  const firstName = document.getElementById('first-name').value;
+  const lastName = document.getElementById('last-name').value;
+  const email = document.getElementById('reg-email').value;
+  
+  if (!firstName || !lastName || !email) {
+    alert('Please fill in all required fields.');
+    return;
+  }
+  
+  if (uploadedFiles.length === 0) {
+    alert('Please upload at least one file.');
+    return;
+  }
+  
+  // Show success message
+  document.getElementById('registration-form').style.display = 'none';
+  document.getElementById('registration-success').style.display = 'block';
+  
+  // In a real application, you would send the data to a server here
+  console.log('Registration submitted:', {
+    firstName,
+    lastName,
+    email,
+    files: uploadedFiles
+  });
+}
+
+/* reservations rendering */
+function renderReservations(){
+  const list = document.getElementById('reservations-list');
+  if(!reservations.length){
+    list.innerHTML = 'No reservations yet.';
+    return;
+  }
+  list.innerHTML = '';
+  reservations.forEach((r, idx)=>{
+    const div = document.createElement('div');
+    div.style.background = 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(245,250,255,0.98))';
+    div.style.padding = '20px';
+    div.style.borderRadius = '16px';
+    div.style.marginBottom = '16px';
+    div.style.boxShadow = '0 12px 30px rgba(10,37,64,0.1)';
+    div.style.backdropFilter = 'blur(20px)';
+    div.style.border = '1px solid rgba(255,255,255,0.3)';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;gap:16px;align-items:center">
+        <div style="flex:1">
+          <div style="font-weight:800;font-size:17px;color:#0a2540">${r.facility} — Spot ${r.spot}</div>
+          <div style="color:#536b7a;margin-top:6px">${r.date} ${r.start}-${r.end}</div>
+          <div style="color:#3b556b;margin-top:4px">Paid: ${r.price} (${r.method})</div>
+          <button class="show-path-btn" onclick="showPath()">Show the Path</button>
+        </div>
+        <div>
+          <img src="${r.qrUrl}" width="100" style="border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.15)" />
+        </div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+/* initialize a default date */
+window.addEventListener('load', ()=>{
+  const dateInput = document.getElementById('reservation-date');
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.value = today;
+});
+</script>
+</body>
+</html>
