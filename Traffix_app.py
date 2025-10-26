@@ -61,4 +61,4 @@ Please submit this completed form along with the required documents."""
     return send_file(temp_path, as_attachment=True, download_name="Traffix_Parking_Registration_Form.pdf")
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=4000)
