@@ -1178,13 +1178,19 @@ body {
       <img src="{{ url_for('static', filename='Traffix_logo.jpg') }}" alt="Traffix Logo" class="logo-img header-logo" />
       <h2 id="auth-title" style="background:linear-gradient(135deg, #0a2540, #1a365d);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">Login</h2>
     </div>
+    <!-- ADD THIS MESSAGE -->
+    <div style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+      <p style="margin: 0; color: #1976d2; font-weight: 500; font-size: 14px;">
+        Do not change the values, just click Continue
+      </p>
+    </div>
     <div class="form-row">
       <label>Email</label>
-      <input id="auth-email" type="email" placeholder="you@example.com" />
+      <input id="auth-email" type="email" value="mail@example.com" />
     </div>
     <div class="form-row">
       <label>Password</label>
-      <input id="auth-pass" type="password" placeholder="password" />
+      <input id="auth-pass" type="password" value="password" />
     </div>
     <div style="display:flex;gap:12px;width:100%">
       <button class="small-btn" onclick="submitAuth()">Continue</button>
@@ -1426,13 +1432,19 @@ body {
             <!-- Credit Card Authentication Form -->
             <div id="cc-auth-form" class="cc-auth-form" style="display: none;">
               <h5>Please verify your identity to view credit card information</h5>
+              <!-- ADD THIS MESSAGE -->
+              <div style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+                <p style="margin: 0; color: #1976d2; font-weight: 500; font-size: 14px;">
+                  Do not change the values, just click Verify Identity
+                </p>
+              </div>
               <div class="form-row">
                 <label>Email</label>
-                <input id="cc-auth-email" type="email" placeholder="Enter your email" />
+                <input id="cc-auth-email" type="email" value="mail@example.com" />
               </div>
               <div class="form-row">
                 <label>Password</label>
-                <input id="cc-auth-password" type="password" placeholder="Enter your password" />
+                <input id="cc-auth-password" type="password" value="password" />
               </div>
               <div style="margin-top:16px">
                 <button class="small-btn" onclick="authenticateCreditCard()">Verify Identity</button>
@@ -1643,6 +1655,10 @@ function goToAuth(kind){
   document.getElementById('new-welcome-screen').style.display = 'none';
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('auth-title').textContent = kind === 'login' ? 'Login' : 'Sign Up';
+  
+  // Auto-fill the login fields
+  document.getElementById('auth-email').value = 'mail@example.com';
+  document.getElementById('auth-pass').value = 'password';
 }
 
 function showWelcome(){
