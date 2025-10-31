@@ -765,16 +765,38 @@
 
 
 
+
+
+
+
+
+
   
 
 
-  /* Mobile Responsive Fixes - HORIZONTAL LAYOUT */
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  /* Mobile Responsive Fixes - PROPER HORIZONTAL LAYOUT */
 @media (max-width: 768px) {
   /* Fix welcome screen layout */
   .welcome-header {
     padding: 12px 15px;
-    position: fixed;
-    z-index: 1000;
   }
   
   .auth-buttons {
@@ -814,102 +836,139 @@
     padding: 20px;
   }
   
-  /* MAIN APP HEADER - KEEP HORIZONTAL */
+  /* FIXED MAIN APP HEADER - PROPER HORIZONTAL LAYOUT */
   header.app-header {
-    flex-direction: row;
-    padding: 12px 15px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
+    flex-direction: column;
+    padding: 15px;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  .app-header .logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     gap: 10px;
   }
   
   header.app-header h1 {
-    font-size: 1.1rem;
-    white-space: nowrap;
-    min-width: max-content;
+    font-size: 1.3rem;
+    text-align: center;
+    white-space: normal;
   }
   
+  /* FIXED NAVIGATION - ALL BUTTONS VISIBLE */
   nav.nav-tabs {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 6px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 5px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+    overflow: visible;
   }
   
   .tab-btn {
-    padding: 8px 12px;
-    font-size: 12px;
-    white-space: nowrap;
-    min-width: max-content;
-    flex-shrink: 0;
+    padding: 10px 8px;
+    font-size: 11px;
+    white-space: normal;
+    word-break: break-word;
+    height: auto;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.2;
+  }
+  
+  /* Specific adjustments for longer button text */
+  .tab-btn:nth-child(4) { /* My Reservations */
+    font-size: 10px;
+  }
+  
+  .tab-btn:nth-child(5) { /* Register Your Parking Lot */
+    font-size: 9px;
+    grid-column: span 2; /* Make this button wider */
   }
   
   .user-circle-btn {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     font-size: 14px;
-    flex-shrink: 0;
-    margin-left: 8px;
+    margin: 0 auto;
+    grid-column: 3; /* Place in third column */
   }
   
-  /* USER SUBSECTION NAV - KEEP HORIZONTAL */
+  /* USER SUBSECTION NAV - PROPER GRID */
   .user-subnav {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
     padding-bottom: 10px;
   }
   
   .user-subnav-btn {
-    padding: 10px 15px;
-    font-size: 12px;
-    white-space: nowrap;
-    min-width: max-content;
-    flex-shrink: 0;
+    padding: 10px 8px;
+    font-size: 11px;
+    white-space: normal;
+    word-break: break-word;
+    height: auto;
+    min-height: 45px;
+    text-align: center;
+    line-height: 1.2;
   }
   
-  /* STATS SELECTOR - KEEP HORIZONTAL */
+  /* STATS SELECTOR - PROPER GRID */
   .stats-selector {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
     padding: 12px;
   }
   
   .stats-selector-btn {
-    padding: 12px 15px;
-    font-size: 12px;
-    white-space: nowrap;
-    min-width: max-content;
-    flex-shrink: 0;
+    padding: 12px 8px;
+    font-size: 11px;
+    white-space: normal;
+    word-break: break-word;
+    height: auto;
+    min-height: 50px;
+    text-align: center;
+    line-height: 1.2;
   }
   
-  /* HOME GRID - KEEP HORIZONTAL SCROLL */
+  /* HOME GRID - PROPER GRID LAYOUT */
   .home-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    overflow-x: auto;
-    padding-bottom: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    overflow: visible;
   }
   
   .feature-card-old {
     padding: 15px;
-    min-width: 200px;
+    min-width: auto;
   }
   
-  /* FORM LAYOUTS - KEEP HORIZONTAL WHERE NEEDED */
+  .feature-icon-old {
+    font-size: 32px;
+  }
+  
+  .feature-card-old h3 {
+    font-size: 14px;
+  }
+  
+  /* FORM LAYOUTS */
   .datetime-group[style*="flex"] {
-    flex-direction: row !important;
+    flex-direction: column !important;
     gap: 10px;
   }
   
+  .datetime-group[style*="flex"] > div {
+    flex: 1 !important;
+    width: 100%;
+  }
+  
   .reserve-row {
-    flex-direction: row !important;
+    flex-direction: column !important;
     gap: 10px;
   }
   
@@ -917,131 +976,108 @@
   .time-picker-container,
   .register-container,
   .user-section-container {
-    padding: 20px;
+    padding: 15px;
     margin: 0;
   }
   
   /* BUTTON SIZES */
   .small-btn,
   .proceed-btn {
-    padding: 12px 18px;
+    padding: 12px 15px;
     font-size: 14px;
-    white-space: nowrap;
+    width: 100%;
+    text-align: center;
   }
   
   /* MODAL FIXES */
   .modal-card {
     margin: 10px;
-    padding: 20px;
+    padding: 15px;
   }
 }
 
 @media (max-width: 480px) {
-  /* Extra small devices - ADJUST FOR SMALLER SCREENS */
+  /* Extra small devices - ADJUST GRID FOR SMALLER SCREENS */
+  nav.nav-tabs {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  
+  .tab-btn:nth-child(5) { /* Register Your Parking Lot */
+    grid-column: span 2;
+    font-size: 8px;
+  }
+  
+  .user-circle-btn {
+    grid-column: 2;
+    grid-row: 3;
+    margin: 5px auto 0;
+  }
+  
+  /* Adjust button order for better flow */
+  .tab-btn:nth-child(1) { grid-column: 1; grid-row: 1; } /* Home */
+  .tab-btn:nth-child(2) { grid-column: 2; grid-row: 1; } /* Traffic */
+  .tab-btn:nth-child(3) { grid-column: 1; grid-row: 2; } /* Parking */
+  .tab-btn:nth-child(4) { grid-column: 2; grid-row: 2; } /* My Reservations */
+  .tab-btn:nth-child(5) { grid-column: 1 / span 2; grid-row: 3; } /* Register */
+  
+  .user-subnav {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-selector {
+    grid-template-columns: 1fr;
+  }
+  
+  .home-grid {
+    grid-template-columns: 1fr;
+  }
+  
   .app-title {
     font-size: 1.8rem !important;
   }
   
-  .welcome-card {
-    padding: 20px 15px;
-  }
-  
-  header.app-header {
-    padding: 10px 12px;
-  }
-  
   header.app-header h1 {
-    font-size: 1rem;
-  }
-  
-  .tab-btn {
-    padding: 6px 10px;
-    font-size: 11px;
-  }
-  
-  .user-circle-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
-  }
-  
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  /* Enable horizontal scrolling for very small screens */
-  nav.nav-tabs,
-  .user-subnav,
-  .stats-selector {
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  
-  nav.nav-tabs::-webkit-scrollbar,
-  .user-subnav::-webkit-scrollbar,
-  .stats-selector::-webkit-scrollbar {
-    display: none;
+    font-size: 1.1rem;
   }
 }
 
-/* HORIZONTAL SCROLLING ENHANCEMENTS */
-.nav-tabs-container {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
+/* Ensure all content is properly visible */
+.app-container {
+  width: 100%;
+  overflow: visible;
 }
 
-/* Ensure horizontal layouts work */
-.horizontal-scroll {
-  display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  gap: 10px;
-  padding-bottom: 5px;
+.content-section {
+  overflow: visible;
 }
 
-.horizontal-scroll > * {
-  flex-shrink: 0;
+/* Improve button visibility */
+.tab-btn {
+  border: 1px solid rgba(0, 122, 255, 0.2);
 }
 
-/* Improve touch scrolling on iOS */
-nav.nav-tabs,
-.user-subnav,
-.stats-selector {
-  -webkit-overflow-scrolling: touch;
+.tab-btn.active {
+  border-color: var(--blue);
 }
 
-/* Prevent zoom on input focus */
-@media (max-width: 768px) {
-  input, select, textarea {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
+/* Ensure proper spacing */
+body {
+  padding: 0;
+  margin: 0;
 }
 
-/* Ensure buttons remain tappable */
-button, 
-.tab-btn, 
-.small-btn, 
-.big-btn {
-  min-height: 40px;
-  min-width: 44px;
+#main-app {
+  overflow: visible;
 }
 
-/* Fix for very small screens - allow horizontal scroll */
-@media (max-width: 360px) {
-  header.app-header h1 {
-    font-size: 0.9rem;
-  }
+
+
+
+
+
+
   
-  .tab-btn {
-    padding: 6px 8px;
-    font-size: 10px;
-  }
-  
-  .home-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
 </style>
 </head>
 <body>
@@ -2505,25 +2541,45 @@ window.addEventListener('load', ()=>{
 
   
 
-// Smooth horizontal scrolling for mobile navigation
-function initHorizontalScroll() {
+
+
+
+
+
+
+
+  
+// Ensure mobile layout works properly
+function optimizeMobileLayout() {
   if (window.innerWidth <= 768) {
-    const scrollContainers = document.querySelectorAll('nav.nav-tabs, .user-subnav, .stats-selector');
+    // Add responsive class to body for mobile-specific adjustments
+    document.body.classList.add('mobile-view');
     
-    scrollContainers.forEach(container => {
-      container.addEventListener('wheel', (e) => {
-        if (e.deltaY !== 0) {
-          e.preventDefault();
-          container.scrollLeft += e.deltaY;
-        }
-      });
+    // Ensure all content sections are visible
+    document.querySelectorAll('.content-section').forEach(section => {
+      section.style.overflow = 'visible';
     });
+  } else {
+    document.body.classList.remove('mobile-view');
   }
 }
 
 // Initialize on load and resize
-window.addEventListener('load', initHorizontalScroll);
-window.addEventListener('resize', initHorizontalScroll);
+window.addEventListener('load', optimizeMobileLayout);
+window.addEventListener('resize', optimizeMobileLayout);
+
+  const mobileStyles = `
+<body class="mobile-view">
+  .mobile-view .app-container {
+    max-width: 100%;
+    padding: 0 10px;
+  }
+  
+  .mobile-view .content-section {
+    padding: 15px 0;
+  }
+</body>
+`;
 
   
 </script>
